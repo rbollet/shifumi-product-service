@@ -29,4 +29,24 @@ class ProductController extends AbstractController
 
         return $this->json(['message' => 'Product created'], Response::HTTP_CREATED);
     }
+
+    #[Route('/list', name: 'get_products', methods: ['GET'])]
+    public function getProducts(EntityManagerInterface $em): JsonResponse
+    {
+        // On vérifie si l'utilisateur est authentifié
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+
+        $products = $em->getRepository(Product::class)->findAll();
+
+        $data = array_map(fn(Product $product) => [
+            'id'          => $product->getId(),
+            'name'        => $product->getName(),
+            'description' => $product->getDescription(),
+            'price'       => $product->getPrice(),
+            'created_at'  => $product->getCreatedAt()?->format('Y-m-d H:i:s'),
+            'updated_at'  => $product->getUpdatedAt()?->format('Y-m-d H:i:s'),
+        ], $products);
+
+        return $this->json($data);
+    }
 }
